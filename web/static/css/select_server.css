@@ -1,0 +1,125 @@
+/* select_server.html 特有樣式 */
+
+.header {
+    text-align: center;
+    margin-bottom: 3rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.header p {
+    color: #888;
+    font-size: 1.1rem;
+}
+
+.guilds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.guild-card {
+    background: #2b2b2b;
+    border: 2px solid #333;
+    padding: 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.guild-card:hover {
+    border-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.guild-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.guild-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.guild-icon img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.guild-info {
+    flex: 1;
+}
+
+.guild-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #fff;
+}
+
+.guild-members {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.guild-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: #2563eb;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.no-guilds {
+    text-align: center;
+    padding: 3rem;
+    background: #2b2b2b;
+    border-radius: 8px;
+}
+
+.no-guilds-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.no-guilds-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.no-guilds-text {
+    color: #888;
+    margin-bottom: 1rem;
+}
+
+.error {
+    background: #dc2626;
+    color: white;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
