@@ -2,7 +2,7 @@
 .env
 
 # 数据文件
-levels.json
+data/
 
 # Python
 __pycache__/

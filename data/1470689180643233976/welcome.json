@@ -1,8 +1,0 @@
-{
-  "welcome_enabled": true,
-  "welcome_channel": 1470720757867745361,
-  "welcome_message": "歡迎 {user} 加入 {server}！",
-  "leave_enabled": true,
-  "leave_channel": 1470720773282070611,
-  "leave_message": "{user} 離開了 {server}..."
-}
