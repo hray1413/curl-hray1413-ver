@@ -40,8 +40,8 @@
         }
 
         .user-avatar {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             border: 2px solid #2563eb;
         }
@@ -190,9 +190,14 @@
             border-radius: 8px;
         }
 
+        .no-guilds-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
         .no-guilds-title {
             font-size: 1.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
 
         .no-guilds-text {
@@ -213,8 +218,8 @@
     <div class="navbar">
         <div class="navbar-brand">Discord Bot Dashboard</div>
         <div class="navbar-user">
-            <span class="user-name">{USERNAME}</span>
             <img src="{AVATAR_URL}" alt="Avatar" class="user-avatar">
+            <span class="user-name">{USERNAME}</span>
             <a href="/logout" class="logout-btn">登出</a>
         </div>
     </div>
@@ -233,6 +238,7 @@
         <div id="error" style="display: none;"></div>
         <div id="guilds" class="guilds-grid" style="display: none;"></div>
         <div id="no-guilds" class="no-guilds" style="display: none;">
+            <div class="no-guilds-icon">沒有伺服器</div>
             <div class="no-guilds-title">沒有可管理的伺服器</div>
             <div class="no-guilds-text">
                 您需要在至少一個安裝了此機器人的伺服器中擁有管理權限才能使用控制台。
