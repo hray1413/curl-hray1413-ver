@@ -131,9 +131,13 @@ class HelpSelect(ui.Select):
                 "👋 歡迎系統\n"
                 "👆 反應角色\n"
                 "📅 簽到系統\n"
-                "🎂 生日系統"
+                "🎂 生日系統\n"
+                "🎯 遊戲系統\n"
+                "📊 統計分析\n"
+                "📝 自定義命令\n"
+                "🎤 臨時語音"
             )
-            embed.set_footer(text="數據儲存於 ./data/<serverID>")
+            embed.set_footer(text="此在 Github 中開源")
             
         elif self.values[0] == "general":
             embed.title = "📌 一般指令"
@@ -551,14 +555,14 @@ class General(commands.Cog):
                 "📅 簽到系統\n"
                 "🎂 生日系統\n"
                 "🎯 遊戲系統\n"
-                "📊 統計分析\\n"
-                "📝 自定義命令\\n"
+                "📊 統計分析\n"
+                "📝 自定義命令\n"
                 "🎤 臨時語音"
             ),
             color=discord.Color.from_rgb(37, 99, 235),
             timestamp=discord.utils.utcnow()
         )
-        embed.set_footer(text="數據儲存於 ./data/<serverID> | 終端命令：restart/stop/status")
+        embed.set_footer(text="此在 Github 中開源")
         
         view = HelpView()
         await interaction.response.send_message(embed=embed, view=view)
