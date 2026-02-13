@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>指令文檔 - Curl Bot</title>
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        .docs-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .docs-header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            background: var(--background);
+        }
+
+        .docs-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .docs-subtitle {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        .docs-nav {
+            background: var(--surface);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .docs-nav-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .docs-nav-list {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .docs-nav-list a {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--background);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .docs-nav-list a:hover {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+        }
+
+        .docs-section {
+            background: var(--surface);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .docs-section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section-icon {
+            font-size: 2rem;
+        }
+
+        .command-table {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .command-row {
+            padding: 1rem;
+            background: var(--background);
+            margin-bottom: 0.75rem;
+            border-left: 3px solid var(--primary-color);
+            transition: all 0.2s;
+        }
+
+        .command-row:hover {
+            background: var(--surface-hover);
+        }
+
+        .command-name {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-desc {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        .command-params {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .param-badge {
+            padding: 0.25rem 0.75rem;
+            background: var(--background);
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            font-size: 0.8rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .permission-badge {
+            padding: 0.25rem 0.75rem;
+            background: var(--background);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.25rem;
+            background: var(--surface);
+            color: var(--text-primary);
+            text-decoration: none;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .back-btn:hover {
+            background: var(--surface-hover);
+        }
+
+        @media (max-width: 768px) {
+            .docs-header {
+                padding: 2rem 0 1.5rem;
+            }
+
+            .docs-title {
+                font-size: 1.75rem;
+            }
+
+            .docs-section {
+                padding: 1.5rem;
+            }
+
+            .docs-section-title {
+                font-size: 1.25rem;
+            }
+
+            .command-name {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 導航欄 -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <div class="navbar-brand">
+                    <span class="brand-icon">🤖</span>
+                    <span class="brand-text">Curl Bot</span>
+                </div>
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="navbar-menu" id="navbarMenu">
+                    <a href="index.html" class="nav-link">首頁</a>
+                    <a href="index.html#features" class="nav-link">功能</a>
+                    <a href="docs.html" class="nav-link active">指令文檔</a>
+                    <a href="dashboard.html" class="nav-link nav-btn">控制台</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 文檔標題 -->
+    <div class="docs-header">
+        <div class="container">
+            <h1 class="docs-title">指令文檔</h1>
+            <p class="docs-subtitle">完整的指令列表與使用說明</p>
+        </div>
+    </div>
+
+    <!-- 文檔內容 -->
+    <div class="docs-container">
+        <a href="index.html" class="back-btn">
+            <span>←</span>
+            <span>返回首頁</span>
+        </a>
+
+        <!-- 快速導航 -->
+        <div class="docs-nav">
+            <div class="docs-nav-title">快速導航</div>
+            <ul class="docs-nav-list">
+                <li><a href="#general">一般指令</a></li>
+                <li><a href="#moderation">管理指令</a></li>
+                <li><a href="#games">遊戲指令</a></li>
+                <li><a href="#fun">娛樂指令</a></li>
+                <li><a href="#achievements">成就系統</a></li>
+                <li><a href="#serverinfo">伺服器資訊</a></li>
+                <li><a href="#leveling">等級系統</a></li>
+                <li><a href="#daily">簽到系統</a></li>
+                <li><a href="#birthday">生日系統</a></li>
+                <li><a href="#statistics">統計系統</a></li>
+                <li><a href="#profile">個人資料</a></li>
+                <li><a href="#reaction">反應角色</a></li>
+                <li><a href="#welcome">歡迎系統</a></li>
+                <li><a href="#voice">臨時語音</a></li>
+                <li><a href="#custom">自訂指令</a></li>
+                <li><a href="#utilities">實用工具</a></li>
+            </ul>
+        </div>
+
+        <!-- 一般指令 -->
+        <div class="docs-section" id="general">
+            <h2 class="docs-section-title">
+                <span class="section-icon">📋</span>
+                <span>一般指令</span>
+            </h2>
+            
+            <div class="command-table">
+                <div class="command-row">
+                    <div class="command-name">/一般 延遲檢查</div>
+                    <div class="command-desc">檢查機器人與 Discord API 的連線延遲</div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/一般 打招呼</div>
+                    <div class="command-desc">機器人會向你打招呼</div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/一般 查看用戶資訊 [用戶]</div>
+                    <div class="command-desc">查看指定用戶的詳細資訊，包含加入時間、帳號創建時間等</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 可選</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/一般 機器人信息</div>
+                    <div class="command-desc">查看機器人的詳細資訊、版本號、伺服器數量等</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 管理指令 -->
+        <div class="docs-section" id="moderation">
+            <h2 class="docs-section-title">
+                <span class="section-icon">🛡️</span>
+                <span>管理指令</span>
+            </h2>
+            
+            <div class="command-table">
+                <div class="command-row">
+                    <div class="command-name">/管理 踢出用戶 &lt;用戶&gt; [原因]</div>
+                    <div class="command-desc">將指定用戶踢出伺服器</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 必填</span>
+                        <span class="param-badge">原因: 可選</span>
+                        <span class="permission-badge">需要踢出成員權限</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/管理 封鎖用戶 &lt;用戶&gt; [原因]</div>
+                    <div class="command-desc">封禁指定用戶，禁止其加入伺服器</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 必填</span>
+                        <span class="param-badge">原因: 可選</span>
+                        <span class="permission-badge">需要封禁成員權限</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/管理 清除訊息 &lt;數量&gt;</div>
+                    <div class="command-desc">批量刪除指定數量的訊息（1-100）</div>
+                    <div class="command-params">
+                        <span class="param-badge">數量: 必填 (1-100)</span>
+                        <span class="permission-badge">需要管理訊息權限</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/管理 警告 &lt;用戶&gt; &lt;原因&gt;</div>
+                    <div class="command-desc">警告指定用戶，累積警告會觸發自動處罰（3次警告=踢出，5次警告=封鎖）</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 必填</span>
+                        <span class="param-badge">原因: 必填</span>
+                        <span class="permission-badge">需要踢出成員權限</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/管理 取消警告 &lt;用戶&gt;</div>
+                    <div class="command-desc">取消指定用戶的最近一次警告</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 必填</span>
+                        <span class="permission-badge">需要踢出成員權限</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/管理 警告記錄 [用戶]</div>
+                    <div class="command-desc">查看指定用戶的所有警告記錄</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 可選</span>
+                        <span class="permission-badge">需要踢出成員權限</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/管理 清除警告 &lt;用戶&gt;</div>
+                    <div class="command-desc">清除指定用戶的所有警告記錄</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 必填</span>
+                        <span class="permission-badge">需要管理員權限</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 遊戲指令 -->
+        <div class="docs-section" id="games">
+            <h2 class="docs-section-title">
+                <span class="section-icon">🎮</span>
+                <span>遊戲指令</span>
+            </h2>
+            
+            <div class="command-table">
+                <div class="command-row">
+                    <div class="command-name">/遊戲 21點</div>
+                    <div class="command-desc">開始一局21點撲克遊戲，目標是讓手牌點數盡量接近21點但不超過</div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/遊戲 猜拳 &lt;選擇&gt;</div>
+                    <div class="command-desc">和機器人玩剪刀石頭布</div>
+                    <div class="command-params">
+                        <span class="param-badge">選擇: 剪刀/石頭/布</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/遊戲 猜數字</div>
+                    <div class="command-desc">猜一個1-100之間的數字，系統會給你提示</div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/遊戲 排行榜 &lt;遊戲&gt;</div>
+                    <div class="command-desc">查看指定遊戲的排行榜</div>
+                    <div class="command-params">
+                        <span class="param-badge">遊戲: 21點/猜拳/猜數字</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/遊戲 統計 [用戶]</div>
+                    <div class="command-desc">查看指定用戶的遊戲統計數據</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 可選</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 娛樂指令 -->
+        <div class="docs-section" id="fun">
+            <h2 class="docs-section-title">
+                <span class="section-icon">🎭</span>
+                <span>娛樂指令</span>
+            </h2>
+            
+            <div class="command-table">
+                <div class="command-row">
+                    <div class="command-name">/娛樂 投擲骰子 [數量] [面數]</div>
+                    <div class="command-desc">投擲指定數量和面數的骰子</div>
+                    <div class="command-params">
+                        <span class="param-badge">數量: 可選 (預設1)</span>
+                        <span class="param-badge">面數: 可選 (預設6)</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/娛樂 擲硬幣</div>
+                    <div class="command-desc">擲一枚硬幣，結果為正面或反面</div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/娛樂 魔法8球 &lt;問題&gt;</div>
+                    <div class="command-desc">向魔法8球問一個問題，獲得神秘的答案</div>
+                    <div class="command-params">
+                        <span class="param-badge">問題: 必填</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/娛樂 幫你選擇 &lt;選項&gt;</div>
+                    <div class="command-desc">從多個選項中隨機選擇一個，選項用空格分隔</div>
+                    <div class="command-params">
+                        <span class="param-badge">選項: 必填（用空格分隔）</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 成就系統 -->
+        <div class="docs-section" id="achievements">
+            <h2 class="docs-section-title">
+                <span class="section-icon">🏆</span>
+                <span>成就系統</span>
+            </h2>
+            
+            <div class="command-table">
+                <div class="command-row">
+                    <div class="command-name">/成就 列表 [稀有度]</div>
+                    <div class="command-desc">查看所有可用的成就，可依稀有度篩選</div>
+                    <div class="command-params">
+                        <span class="param-badge">稀有度: 可選（普通/稀有/史詩/傳奇）</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/成就 我的成就 [用戶]</div>
+                    <div class="command-desc">查看已解鎖的成就</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 可選</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/成就 進度 [用戶]</div>
+                    <div class="command-desc">查看成就解鎖進度和統計</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 可選</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 等級系統 -->
+        <div class="docs-section" id="leveling">
+            <h2 class="docs-section-title">
+                <span class="section-icon">⭐</span>
+                <span>等級系統</span>
+            </h2>
+            
+            <div class="command-table">
+                <div class="command-row">
+                    <div class="command-name">/等級 查看 [用戶]</div>
+                    <div class="command-desc">查看指定用戶的等級和經驗值</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 可選</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/等級 排行榜</div>
+                    <div class="command-desc">查看伺服器的等級排行榜</div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/等級 重置 &lt;用戶&gt;</div>
+                    <div class="command-desc">重置指定用戶的等級和經驗值</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 必填</span>
+                        <span class="permission-badge">需要管理員權限</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 簽到系統 -->
+        <div class="docs-section" id="daily">
+            <h2 class="docs-section-title">
+                <span class="section-icon">📅</span>
+                <span>簽到系統</span>
+            </h2>
+            
+            <div class="command-table">
+                <div class="command-row">
+                    <div class="command-name">/簽到 打卡</div>
+                    <div class="command-desc">進行每日簽到，獲得積分獎勵。連續簽到有額外加成！</div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/簽到 查看 [用戶]</div>
+                    <div class="command-desc">查看簽到資訊和統計</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 可選</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/簽到 排行榜</div>
+                    <div class="command-desc">查看簽到積分排行榜</div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/簽到 重置 &lt;用戶&gt;</div>
+                    <div class="command-desc">重置指定用戶的簽到資料</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 必填</span>
+                        <span class="permission-badge">需要管理員權限</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 生日系統 -->
+        <div class="docs-section" id="birthday">
+            <h2 class="docs-section-title">
+                <span class="section-icon">🎂</span>
+                <span>生日系統</span>
+            </h2>
+            
+            <div class="command-table">
+                <div class="command-row">
+                    <div class="command-name">/生日 設定 &lt;月&gt; &lt;日&gt;</div>
+                    <div class="command-desc">設定你的生日</div>
+                    <div class="command-params">
+                        <span class="param-badge">月: 必填 (1-12)</span>
+                        <span class="param-badge">日: 必填 (1-31)</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/生日 查看 [用戶]</div>
+                    <div class="command-desc">查看生日資訊</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 可選</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/生日 列表</div>
+                    <div class="command-desc">查看本月的生日列表</div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/生日 刪除</div>
+                    <div class="command-desc">刪除你設定的生日</div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/生日 開關 &lt;狀態&gt;</div>
+                    <div class="command-desc">開啟或關閉生日提醒功能</div>
+                    <div class="command-params">
+                        <span class="param-badge">狀態: 開啟/關閉</span>
+                        <span class="permission-badge">需要管理員權限</span>
+                    </div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/生日 設定頻道 &lt;頻道&gt;</div>
+                    <div class="command-desc">設定生日通知發送的頻道</div>
+                    <div class="command-params">
+                        <span class="param-badge">頻道: 必填</span>
+                        <span class="permission-badge">需要管理員權限</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 其他系統... 繼續添加 -->
+        <div class="docs-section" id="statistics">
+            <h2 class="docs-section-title">
+                <span class="section-icon">📊</span>
+                <span>統計系統</span>
+            </h2>
+            
+            <div class="command-table">
+                <div class="command-row">
+                    <div class="command-name">/統計 總覽</div>
+                    <div class="command-desc">查看伺服器的整體統計資訊</div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/統計 指令</div>
+                    <div class="command-desc">查看指令使用統計</div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-name">/統計 用戶 [用戶]</div>
+                    <div class="command-desc">查看指定用戶的統計資料</div>
+                    <div class="command-params">
+                        <span class="param-badge">用戶: 可選</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 返回頂部按鈕 -->
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="#" class="btn btn-secondary">返回頂部 ↑</a>
+        </div>
+    </div>
+
+    <!-- 頁尾 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">Curl Bot</h3>
+                    <p class="footer-description">全方位的 Discord 伺服器管理助手</p>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-heading">快速連結</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html">首頁</a></li>
+                        <li><a href="index.html#features">功能</a></li>
+                        <li><a href="docs.html">文檔</a></li>
+                        <li><a href="dashboard.html">控制台</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Curl Bot. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="static/js/main.js"></script>
+</body>
+</html>

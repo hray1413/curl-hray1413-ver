@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curl Bot - 多功能 Discord 機器人</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <!-- 導航欄 -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <div class="navbar-brand">
+                    <span class="brand-icon">🤖</span>
+                    <span class="brand-text">Curl Bot</span>
+                </div>
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="navbar-menu" id="navbarMenu">
+                    <a href="#home" class="nav-link active">首頁</a>
+                    <a href="#features" class="nav-link">功能</a>
+                    <a href="#commands" class="nav-link">指令</a>
+                    <a href="#stats" class="nav-link">統計</a>
+                    <a href="dashboard.html" class="nav-link nav-btn">控制台</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主視覺區 -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    線上運行中
+                </div>
+                <h1 class="hero-title">Curl Bot</h1>
+                <h2 class="hero-subtitle">全方位的 Discord 伺服器管理助手</h2>
+                <p class="hero-description">
+                    集成等級系統、遊戲娛樂、管理工具、統計分析等豐富功能<br>
+                    讓您的 Discord 伺服器更加活躍有趣
+                </p>
+                <div class="hero-buttons">
+                    <a href="#" class="btn btn-primary">
+                        <span class="btn-icon">📥</span>
+                        邀請機器人
+                    </a>
+                    <a href="#features" class="btn btn-secondary">
+                        <span class="btn-icon">📖</span>
+                        了解更多
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">100+</div>
+                        <div class="stat-label">伺服器</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">10K+</div>
+                        <div class="stat-label">用戶</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">99.9%</div>
+                        <div class="stat-label">正常運行時間</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 功能特色 -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">豐富功能</h2>
+                <p class="section-subtitle">一個機器人，滿足所有需求</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⭐</div>
+                    <h3 class="feature-title">等級系統</h3>
+                    <p class="feature-description">自動追蹤用戶活躍度，設定等級獎勵，讓社群更有活力</p>
+                    <ul class="feature-list">
+                        <li>自動經驗值計算</li>
+                        <li>可自訂等級獎勵</li>
+                        <li>等級排行榜</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎮</div>
+                    <h3 class="feature-title">遊戲娛樂</h3>
+                    <p class="feature-description">多種互動遊戲，包含21點、猜拳、猜數字等</p>
+                    <ul class="feature-list">
+                        <li>21點撲克遊戲</li>
+                        <li>猜拳對戰</li>
+                        <li>遊戲統計與排行</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3 class="feature-title">管理工具</h3>
+                    <p class="feature-description">完整的伺服器管理功能，包含警告、踢出、封鎖等</p>
+                    <ul class="feature-list">
+                        <li>警告系統（自動處罰）</li>
+                        <li>訊息批量管理</li>
+                        <li>權限控制</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🏆</div>
+                    <h3 class="feature-title">成就系統</h3>
+                    <p class="feature-description">40+ 種成就，4種稀有度，激勵用戶參與</p>
+                    <ul class="feature-list">
+                        <li>多種成就類型</li>
+                        <li>自動解鎖機制</li>
+                        <li>進度追蹤</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📅</div>
+                    <h3 class="feature-title">簽到系統</h3>
+                    <p class="feature-description">每日簽到獲得積分，連續簽到額外獎勵</p>
+                    <ul class="feature-list">
+                        <li>每日簽到獎勵</li>
+                        <li>連續簽到加成</li>
+                        <li>簽到排行榜</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎂</div>
+                    <h3 class="feature-title">生日系統</h3>
+                    <p class="feature-description">記錄成員生日，自動發送祝福訊息</p>
+                    <ul class="feature-list">
+                        <li>生日提醒</li>
+                        <li>生日列表</li>
+                        <li>自動祝福訊息</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">統計分析</h3>
+                    <p class="feature-description">詳細的數據統計，了解伺服器運營狀況</p>
+                    <ul class="feature-list">
+                        <li>指令使用統計</li>
+                        <li>用戶活躍分析</li>
+                        <li>圖表視覺化</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">👤</div>
+                    <h3 class="feature-title">個人資料</h3>
+                    <p class="feature-description">精美的個人資料卡片，展示用戶信息</p>
+                    <ul class="feature-list">
+                        <li>自訂資料卡</li>
+                        <li>等級展示</li>
+                        <li>成就徽章</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎭</div>
+                    <h3 class="feature-title">反應角色</h3>
+                    <p class="feature-description">點擊表情符號自動獲得角色</p>
+                    <ul class="feature-list">
+                        <li>表情角色綁定</li>
+                        <li>多重選擇</li>
+                        <li>自訂樣式</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">👋</div>
+                    <h3 class="feature-title">歡迎系統</h3>
+                    <p class="feature-description">自訂歡迎與離開訊息，讓新成員感受溫暖</p>
+                    <ul class="feature-list">
+                        <li>自訂歡迎訊息</li>
+                        <li>離開通知</li>
+                        <li>自動角色分配</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔊</div>
+                    <h3 class="feature-title">臨時語音</h3>
+                    <p class="feature-description">動態創建臨時語音頻道，用完自動刪除</p>
+                    <ul class="feature-list">
+                        <li>自動創建頻道</li>
+                        <li>權限控制</li>
+                        <li>空閒自動刪除</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <h3 class="feature-title">自訂指令</h3>
+                    <p class="feature-description">創建專屬的自訂指令</p>
+                    <ul class="feature-list">
+                        <li>簡易建立</li>
+                        <li>變數支援</li>
+                        <li>權限設定</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 指令區塊 -->
+    <section class="commands" id="commands">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">常用指令</h2>
+                <p class="section-subtitle">所有指令都支援 Slash Commands</p>
+            </div>
+            <div class="commands-grid">
+                <div class="command-category">
+                    <div class="category-header">
+                        <span class="category-icon">📋</span>
+                        <h3>一般指令</h3>
+                    </div>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <code>/一般 延遲檢查</code>
+                            <span>檢查機器人延遲</span>
+                        </div>
+                        <div class="command-item">
+                            <code>/一般 查看用戶資訊</code>
+                            <span>查看用戶詳細資訊</span>
+                        </div>
+                        <div class="command-item">
+                            <code>/一般 機器人信息</code>
+                            <span>查看機器人資訊</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="command-category">
+                    <div class="category-header">
+                        <span class="category-icon">🛡️</span>
+                        <h3>管理指令</h3>
+                    </div>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <code>/管理 警告</code>
+                            <span>警告用戶（自動處罰）</span>
+                        </div>
+                        <div class="command-item">
+                            <code>/管理 踢出用戶</code>
+                            <span>踢出成員</span>
+                        </div>
+                        <div class="command-item">
+                            <code>/管理 清除訊息</code>
+                            <span>批量刪除訊息</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="command-category">
+                    <div class="category-header">
+                        <span class="category-icon">🎮</span>
+                        <h3>遊戲指令</h3>
+                    </div>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <code>/遊戲 21點</code>
+                            <span>21點撲克遊戲</span>
+                        </div>
+                        <div class="command-item">
+                            <code>/遊戲 猜拳</code>
+                            <span>剪刀石頭布</span>
+                        </div>
+                        <div class="command-item">
+                            <code>/遊戲 排行榜</code>
+                            <span>查看遊戲排行榜</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="command-category">
+                    <div class="category-header">
+                        <span class="category-icon">⭐</span>
+                        <h3>等級系統</h3>
+                    </div>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <code>/等級 查看</code>
+                            <span>查看等級和經驗</span>
+                        </div>
+                        <div class="command-item">
+                            <code>/等級 排行榜</code>
+                            <span>查看等級排行榜</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="command-category">
+                    <div class="category-header">
+                        <span class="category-icon">📅</span>
+                        <h3>簽到系統</h3>
+                    </div>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <code>/簽到 打卡</code>
+                            <span>每日簽到取得積分</span>
+                        </div>
+                        <div class="command-item">
+                            <code>/簽到 排行榜</code>
+                            <span>簽到排行榜</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="command-category">
+                    <div class="category-header">
+                        <span class="category-icon">🏆</span>
+                        <h3>成就系統</h3>
+                    </div>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <code>/成就 列表</code>
+                            <span>查看所有可用成就</span>
+                        </div>
+                        <div class="command-item">
+                            <code>/成就 我的成就</code>
+                            <span>查看已解鎖的成就</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="commands-footer">
+                <a href="docs.html" class="btn btn-secondary">查看完整指令列表</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 統計數據 -->
+    <section class="stats" id="stats">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">即時統計</h2>
+                <p class="section-subtitle">持續成長的社群</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🤖</div>
+                    <div class="stat-number" data-target="1">1</div>
+                    <div class="stat-text">版本</div>
+                    <div class="stat-subtext">持續更新中</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🌍</div>
+                    <div class="stat-number" data-target="100">100</div>
+                    <div class="stat-text">活躍伺服器</div>
+                    <div class="stat-subtext">遍佈全球</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-number" data-target="10000">10,000</div>
+                    <div class="stat-text">總用戶數</div>
+                    <div class="stat-subtext">快速增長</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-number" data-target="99">99.9</div>
+                    <div class="stat-text">正常運行率 %</div>
+                    <div class="stat-subtext">穩定可靠</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-number" data-target="100000">100K+</div>
+                    <div class="stat-text">指令執行次數</div>
+                    <div class="stat-subtext">每月</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎮</div>
+                    <div class="stat-number" data-target="40">40+</div>
+                    <div class="stat-text">可用成就</div>
+                    <div class="stat-subtext">持續新增</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA 區塊 -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2 class="cta-title">準備好開始了嗎？</h2>
+                <p class="cta-description">立即邀請 Curl Bot 到您的伺服器，體驗強大的功能</p>
+                <div class="cta-buttons">
+                    <a href="#" class="btn btn-primary btn-lg">
+                        <span class="btn-icon">📥</span>
+                        邀請機器人
+                    </a>
+                    <a href="dashboard.html" class="btn btn-outline btn-lg">
+                        <span class="btn-icon">🎛️</span>
+                        前往控制台
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 頁尾 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">Curl Bot</h3>
+                    <p class="footer-description">全方位的 Discord 伺服器管理助手</p>
+                    <div class="footer-version">版本 1.0.0</div>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-heading">快速連結</h4>
+                    <ul class="footer-links">
+                        <li><a href="#home">首頁</a></li>
+                        <li><a href="#features">功能</a></li>
+                        <li><a href="#commands">指令</a></li>
+                        <li><a href="docs.html">文檔</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-heading">資源</h4>
+                    <ul class="footer-links">
+                        <li><a href="dashboard.html">控制台</a></li>
+                        <li><a href="#">支援伺服器</a></li>
+                        <li><a href="#">GitHub</a></li>
+                        <li><a href="#">隱私政策</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-heading">聯絡我們</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Discord 支援</a></li>
+                        <li><a href="#">回報問題</a></li>
+                        <li><a href="#">功能建議</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Curl Bot. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="static/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>控制台 - Curl Bot</title>
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        .dashboard-hero {
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--background);
+        }
+
+        .dashboard-content {
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
+        }
+
+        .dashboard-icon {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .dashboard-text {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .server-select-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--discord-blue);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .server-select-btn:hover {
+            background: #4752c4;
+        }
+
+        .features-list {
+            background: var(--surface);
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .features-list h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .features-list ul {
+            list-style: none;
+        }
+
+        .features-list li {
+            padding: 0.5rem 0;
+            color: var(--text-secondary);
+            padding-left: 1.5rem;
+            position: relative;
+            font-size: 0.9rem;
+        }
+
+        .features-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.85rem;
+            width: 6px;
+            height: 6px;
+            background: var(--text-muted);
+        }
+
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .info-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .info-card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- 導航欄 -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <div class="navbar-brand">
+                    <span class="brand-icon">🤖</span>
+                    <span class="brand-text">Curl Bot</span>
+                </div>
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="navbar-menu" id="navbarMenu">
+                    <a href="index.html" class="nav-link">首頁</a>
+                    <a href="index.html#features" class="nav-link">功能</a>
+                    <a href="docs.html" class="nav-link">指令文檔</a>
+                    <a href="dashboard.html" class="nav-link active nav-btn">控制台</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 控制台主區域 -->
+    <section class="dashboard-hero">
+        <div class="container">
+            <div class="dashboard-content">
+                <div class="dashboard-icon">🎛️</div>
+                <h1 class="dashboard-title">控制台登入</h1>
+                <p class="dashboard-text">
+                    使用 Discord 帳號登入，管理您的伺服器設定、<br>
+                    查看統計資料、自訂機器人功能等等
+                </p>
+                <a href="../web/index.html" class="server-select-btn">
+                    <span>🔐</span>
+                    <span>使用 Discord 登入</span>
+                </a>
+
+                <div class="features-list">
+                    <h3>控制台功能</h3>
+                    <ul>
+                        <li>即時查看伺服器統計資訊</li>
+                        <li>管理用戶等級和經驗值</li>
+                        <li>自訂歡迎訊息和離開訊息</li>
+                        <li>設定反應角色和自訂指令</li>
+                        <li>查看詳細的指令使用記錄</li>
+                        <li>配置生日提醒和簽到系統</li>
+                        <li>管理警告系統和自動處罰</li>
+                        <li>檢視成就解鎖統計</li>
+                    </ul>
+                </div>
+
+                <div class="info-cards">
+                    <div class="info-card">
+                        <div class="info-card-icon">🔒</div>
+                        <h3 class="info-card-title">安全可靠</h3>
+                        <p class="info-card-text">使用 Discord OAuth2 安全認證，保護您的資料安全</p>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-card-icon">⚡</div>
+                        <h3 class="info-card-title">即時同步</h3>
+                        <p class="info-card-text">所有設定變更即時生效，無需等待</p>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-card-icon">📱</div>
+                        <h3 class="info-card-title">響應式設計</h3>
+                        <p class="info-card-text">支援手機、平板、電腦等各種裝置</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 頁尾 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">Curl Bot</h3>
+                    <p class="footer-description">全方位的 Discord 伺服器管理助手</p>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-heading">快速連結</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html">首頁</a></li>
+                        <li><a href="index.html#features">功能</a></li>
+                        <li><a href="docs.html">文檔</a></li>
+                        <li><a href="dashboard.html">控制台</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-heading">支援</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">使用教學</a></li>
+                        <li><a href="#">常見問題</a></li>
+                        <li><a href="#">聯絡我們</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Curl Bot. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="static/js/main.js"></script>
+</body>
+</html>

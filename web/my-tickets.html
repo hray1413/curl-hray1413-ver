@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的客服單 - CURL Bot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', -apple-system, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        /* 顶部导航栏 */
+        .navbar {
+            background: #2b2b2b;
+            border-bottom: 3px solid #2563eb;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: #888;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: #2563eb;
+        }
+
+        .nav-link.active {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* 页头 */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: #888;
+            font-size: 0.95rem;
+        }
+
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #2b2b2b;
+            padding: 1.5rem;
+            border-left: 4px solid;
+        }
+
+        .stat-card.open {
+            border-color: #10b981;
+        }
+
+        .stat-card.closed {
+            border-color: #6b7280;
+        }
+
+        .stat-card.total {
+            border-color: #2563eb;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        /* 过滤器 */
+        .filters {
+            background: #2b2b2b;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .filter-group label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        select, input[type="text"] {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        select:focus, input[type="text"]:focus {
+            border-color: #2563eb;
+        }
+
+        /* 客服单列表 */
+        .tickets-container {
+            background: #2b2b2b;
+            padding: 1.5rem;
+        }
+
+        .tickets-header {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #333;
+        }
+
+        .ticket-item {
+            background: #1a1a1a;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .ticket-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .ticket-item.status-open {
+            border-color: #10b981;
+        }
+
+        .ticket-item.status-closed {
+            border-color: #6b7280;
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .ticket-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .ticket-id {
+            color: #888;
+            font-size: 0.85rem;
+            font-family: 'Consolas', monospace;
+        }
+
+        .ticket-status {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 12px;
+        }
+
+        .ticket-status.open {
+            background: #10b98133;
+            color: #10b981;
+        }
+
+        .ticket-status.closed {
+            background: #6b728033;
+            color: #9ca3af;
+        }
+
+        .ticket-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: #ffffff;
+            font-size: 0.95rem;
+        }
+
+        .server-name {
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #888;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-subtext {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* 加载状态 */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #888;
+        }
+
+        .spinner {
+            border: 3px solid #333;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 按钮 */
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: #2b2b2b;
+            margin: 2% auto;
+            padding: 0;
+            border: 1px solid #333;
+            width: 95%;
+            max-width: 1400px;
+            border-radius: 8px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            background: #1a1a1a;
+            border-bottom: 2px solid #2563eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .close {
+            color: #888;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .close:hover {
+            color: #ffffff;
+        }
+
+        .modal-body {
+            padding: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-body iframe {
+            width: 100%;
+            border: none;
+            min-height: 70vh;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .navbar-nav {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: flex-start;
+                width: 100%;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .ticket-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">🌀 CURL Bot</a>
+        <div class="navbar-nav">
+            <a href="/select-server" class="nav-link">管理面板</a>
+            <a href="/my-tickets" class="nav-link active">我的客服單</a>
+            <div class="user-info">
+                <img src="{AVATAR_URL}" alt="Avatar" class="user-avatar">
+                <span>{USERNAME}</span>
+                <a href="/logout" class="nav-link">登出</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 页头 -->
+        <div class="page-header">
+            <h1>🎫 我的客服單</h1>
+            <p>查看您在所有伺服器中創建的客服單記錄</p>
+        </div>
+
+        <!-- 统计 -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card open">
+                <div class="stat-label">開啟中</div>
+                <div class="stat-value" id="openCount">-</div>
+            </div>
+            <div class="stat-card closed">
+                <div class="stat-label">已關閉</div>
+                <div class="stat-value" id="closedCount">-</div>
+            </div>
+            <div class="stat-card total">
+                <div class="stat-label">總計</div>
+                <div class="stat-value" id="totalCount">-</div>
+            </div>
+        </div>
+
+        <!-- 过滤器 -->
+        <div class="filters">
+            <div class="filter-group">
+                <label>狀態：</label>
+                <select id="statusFilter" onchange="filterTickets()">
+                    <option value="all">全部</option>
+                    <option value="open">開啟中</option>
+                    <option value="closed">已關閉</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>伺服器：</label>
+                <select id="serverFilter" onchange="filterTickets()">
+                    <option value="all">全部伺服器</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>搜尋：</label>
+                <input type="text" id="searchInput" placeholder="搜尋客服單 ID..." onkeyup="filterTickets()">
+            </div>
+        </div>
+
+        <!-- 客服单列表 -->
+        <div class="tickets-container">
+            <div class="tickets-header">客服單記錄</div>
+            <div id="ticketsList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>載入客服單資料中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 客服单内容模态框 -->
+    <div id="transcriptModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📝 客服單聊天記錄</h2>
+                <span class="close" onclick="closeTranscript()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <iframe id="transcriptFrame"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allTickets = [];
+        let serverMap = {};
+
+        // 加载客服单
+        async function loadMyTickets() {
+            try {
+                const response = await fetch('/api/my-tickets');
+                
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                if (!response.ok) {
+                    throw new Error('載入失敗');
+                }
+
+                const data = await response.json();
+                allTickets = data.tickets || [];
+                serverMap = data.servers || {};
+
+                // 更新服务器下拉框
+                updateServerFilter();
+                
+                // 更新统计
+                updateStats();
+                
+                // 显示客服单
+                filterTickets();
+                
+            } catch (error) {
+                console.error('載入客服單失敗:', error);
+                document.getElementById('ticketsList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-text">載入失敗</div>
+                        <div class="empty-state-subtext">${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // 更新服务器过滤器
+        function updateServerFilter() {
+            const serverFilter = document.getElementById('serverFilter');
+            const servers = Object.entries(serverMap);
+            
+            // 保留"全部伺服器"选项
+            serverFilter.innerHTML = '<option value="all">全部伺服器</option>';
+            
+            servers.forEach(([guildId, serverName]) => {
+                const option = document.createElement('option');
+                option.value = guildId;
+                option.textContent = serverName;
+                serverFilter.appendChild(option);
+            });
+        }
+
+        // 更新统计
+        function updateStats() {
+            const openTickets = allTickets.filter(t => t.status === 'open');
+            const closedTickets = allTickets.filter(t => t.status === 'closed');
+            
+            document.getElementById('openCount').textContent = openTickets.length;
+            document.getElementById('closedCount').textContent = closedTickets.length;
+            document.getElementById('totalCount').textContent = allTickets.length;
+        }
+
+        // 过滤客服单
+        function filterTickets() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const serverFilter = document.getElementById('serverFilter').value;
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = allTickets;
+
+            // 状态过滤
+            if (statusFilter !== 'all') {
+                filtered = filtered.filter(t => t.status === statusFilter);
+            }
+
+            // 服务器过滤
+            if (serverFilter !== 'all') {
+                filtered = filtered.filter(t => t.guild_id === serverFilter);
+            }
+
+            // 搜索过滤
+            if (searchText) {
+                filtered = filtered.filter(t => 
+                    t.ticket_id.toLowerCase().includes(searchText) ||
+                    t.channel_name.toLowerCase().includes(searchText)
+                );
+            }
+
+            // 显示结果
+            displayTickets(filtered);
+        }
+
+        // 显示客服单
+        function displayTickets(tickets) {
+            const container = document.getElementById('ticketsList');
+
+            if (tickets.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-text">沒有找到客服單</div>
+                        <div class="empty-state-subtext">您還沒有創建任何客服單，或符合條件的客服單不存在</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // 按创建时间排序（最新的在前）
+            tickets.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            let html = '';
+            tickets.forEach(ticket => {
+                const serverName = serverMap[ticket.guild_id] || '未知伺服器';
+                const createdDate = new Date(ticket.created_at).toLocaleString('zh-TW');
+                const closedDate = ticket.closed_at ? new Date(ticket.closed_at).toLocaleString('zh-TW') : '-';
+                const statusClass = ticket.status === 'open' ? 'open' : 'closed';
+                const statusText = ticket.status === 'open' ? '開啟中' : '已關閉';
+                const closeReasonHtml = ticket.closed_reason ? `
+                            <div class="info-item">
+                                <div class="info-label">關閉原因</div>
+                                <div class="info-value">` + ticket.closed_reason + `</div>
+                            </div>
+                            ` : '';
+                const closeButtonHtml = ticket.status === 'open' ? `
+                                <button class="btn" onclick="closeTicketFromUser('` + ticket.guild_id + `', '` + ticket.ticket_id + `')" style="padding: 0.5rem 1rem; font-size: 0.85rem; background: #dc2626; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: 600; transition: background 0.2s;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
+                                    🔒 關閉客服單
+                                </button>
+                                ` : '';
+
+                html += `
+                    <div class="ticket-item status-` + statusClass + `">
+                        <div class="ticket-header">
+                            <div>
+                                <div class="ticket-title">` + ticket.channel_name + `</div>
+                                <div class="ticket-id">ID: ` + ticket.ticket_id + `</div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <button class="btn btn-primary" onclick="viewTranscript('` + ticket.guild_id + `', '` + ticket.ticket_id + `')" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 4px; font-weight: 600;">
+                                    📝 查看內容
+                                </button>
+                                ` + closeButtonHtml + `
+                                <span class="ticket-status ` + statusClass + `">` + statusText + `</span>
+                            </div>
+                        </div>
+                        <div class="ticket-info">
+                            <div class="info-item">
+                                <div class="info-label">伺服器</div>
+                                <div class="info-value server-name">` + serverName + `</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">創建時間</div>
+                                <div class="info-value">` + createdDate + `</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">關閉時間</div>
+                                <div class="info-value">` + closedDate + `</div>
+                            </div>
+                            ` + closeReasonHtml + `
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // 查看客服单内容
+        async function viewTranscript(guildId, ticketId) {
+            const modal = document.getElementById('transcriptModal');
+            const iframe = document.getElementById('transcriptFrame');
+            
+            try {
+                // 显示模态框
+                modal.style.display = 'block';
+                iframe.srcdoc = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #888;">載入中...</div>';
+                
+                // 獲取HTML內容
+                const response = await fetch(`/api/tickets/${guildId}/${ticketId}/transcript`);
+                
+                if (response.status === 404) {
+                    iframe.srcdoc = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #dc2626;">找不到聊天記錄</div>';
+                    return;
+                }
+                
+                if (response.status === 403) {
+                    iframe.srcdoc = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #dc2626;">無權查看此客服單</div>';
+                    return;
+                }
+                
+                if (!response.ok) {
+                    throw new Error('獲取失敗');
+                }
+                
+                const html = await response.text();
+                iframe.srcdoc = html;
+                
+            } catch (error) {
+                console.error('獲取聊天記錄失敗:', error);
+                iframe.srcdoc = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; color: #dc2626;">獲取失敗，請稍後再試</div>';
+            }
+        }
+
+        // 關閉模态框
+        function closeTranscript() {
+            const modal = document.getElementById('transcriptModal');
+            modal.style.display = 'none';
+        }
+
+        // 關閉客服單
+        async function closeTicketFromUser(guildId, ticketId) {
+            const reason = prompt('請輸入關閉原因（可選）：');
+            if (reason === null) return; // 用户取消
+            
+            if (!confirm('確定要關閉此客服單嗎？')) return;
+            
+            try {
+                const response = await fetch(`/api/tickets/${guildId}/${ticketId}/close`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason: reason || '用戶關閉' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ 客服單已關閉！');
+                    loadMyTickets(); // 重新載入客服單列表
+                } else {
+                    alert('❌ ' + (data.message || '關閉失敗'));
+                }
+            } catch (error) {
+                console.error('關閉客服單失敗:', error);
+                alert('❌ 關閉失敗，請稍後再試');
+            }
+        }
+
+        // 點擊模态框外部關閉
+        window.onclick = function(event) {
+            const modal = document.getElementById('transcriptModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // 页面加载时获取数据
+        loadMyTickets();
+
+        // 每30秒自动刷新
+        setInterval(loadMyTickets, 30000);
+    </script>
+</body>
+</html>

@@ -35,8 +35,10 @@ class WebServer:
         self.app.router.add_get('/callback', self.callback)
         self.app.router.add_get('/select-server', self.select_server)
         self.app.router.add_get('/dashboard/{guild_id}', self.dashboard)
+        self.app.router.add_get('/my-tickets', self.my_tickets)
         self.app.router.add_get('/logout', self.logout)
         self.app.router.add_get('/api/guilds', self.api_guilds)
+        self.app.router.add_get('/api/my-tickets', self.api_my_tickets)
         self.app.router.add_get('/api/stats/{guild_id}', self.api_stats)
         self.app.router.add_get('/api/data/{guild_id}/{data_type}', self.api_data)
         self.app.router.add_post('/api/welcome/{guild_id}/toggle', self.api_toggle_welcome)
@@ -62,6 +64,13 @@ class WebServer:
         self.app.router.add_get('/api/achievements/{guild_id}', self.api_get_achievements)
         self.app.router.add_post('/api/achievements/{guild_id}/{user_id}/{achievement_id}', self.api_grant_achievement)
         self.app.router.add_delete('/api/achievements/{guild_id}/{user_id}/{achievement_id}', self.api_revoke_achievement)
+        
+        # 客服單系統 API
+        self.app.router.add_get('/api/tickets/{guild_id}', self.api_get_tickets)
+        self.app.router.add_post('/api/tickets/{guild_id}/settings', self.api_update_ticket_settings)
+        self.app.router.add_post('/api/tickets/{guild_id}/{ticket_id}/close', self.api_close_ticket)
+        self.app.router.add_get('/api/tickets/{guild_id}/{ticket_id}/transcript', self.api_get_ticket_transcript)
+        self.app.router.add_post('/api/tickets/{guild_id}/create-panel', self.api_create_ticket_panel)
     
     async def index(self, request):
         """主頁"""
@@ -139,6 +148,25 @@ class WebServer:
             raise web.HTTPFound('/login')
         
         with open('web/select_server.html', 'r', encoding='utf-8') as f:
+            html = f.read()
+        
+        # 替換用戶資訊
+        avatar_url = f"https://cdn.discordapp.com/avatars/{user['id']}/{user['avatar']}.png" if user.get('avatar') else "https://cdn.discordapp.com/embed/avatars/0.png"
+        
+        html = html.replace('{USERNAME}', user['username'])
+        html = html.replace('{AVATAR_URL}', avatar_url)
+        
+        return web.Response(text=html, content_type='text/html')
+    
+    async def my_tickets(self, request):
+        """我的客服單頁面"""
+        session = await get_session(request)
+        user = session.get('user')
+        
+        if not user:
+            raise web.HTTPFound('/login')
+        
+        with open('web/my-tickets.html', 'r', encoding='utf-8') as f:
             html = f.read()
         
         # 替換用戶資訊
@@ -915,6 +943,344 @@ class WebServer:
                     'message': '用戶沒有此成就'
                 })
                 
+        except Exception as e:
+            return web.json_response({'error': str(e)}, status=500)
+    
+    async def api_get_tickets(self, request):
+        """API：獲取客服單數據"""
+        session = await get_session(request)
+        
+        if not session.get('user'):
+            return web.json_response({'error': 'Unauthorized'}, status=401)
+        
+        guild_id = request.match_info['guild_id']
+        
+        try:
+            file_path = f'./data/{guild_id}/tickets.json'
+            if not os.path.exists(file_path):
+                return web.json_response({
+                    'exists': False,
+                    'data': {
+                        'enabled': False,
+                        'category_id': None,
+                        'support_role_id': None,
+                        'log_channel_id': None,
+                        'tickets': {},
+                        'ticket_count': 0
+                    }
+                })
+            
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            # 豐富客服單信息（添加用戶名等）
+            guild = self.bot.get_guild(int(guild_id))
+            if guild:
+                for ticket_id, ticket in data['tickets'].items():
+                    user = guild.get_member(int(ticket['user_id']))
+                    ticket['user_name'] = user.name if user else '未知用戶'
+                    ticket['user_avatar'] = str(user.avatar.url) if user and user.avatar else None
+                    
+                    if ticket.get('closed_by'):
+                        closer = guild.get_member(int(ticket['closed_by']))
+                        ticket['closer_name'] = closer.name if closer else '未知用戶'
+            
+            return web.json_response({'exists': True, 'data': data})
+            
+        except Exception as e:
+            return web.json_response({'error': str(e)}, status=500)
+    
+    async def api_update_ticket_settings(self, request):
+        """API：更新客服單設定"""
+        session = await get_session(request)
+        
+        if not session.get('user'):
+            return web.json_response({'error': 'Unauthorized'}, status=401)
+        
+        guild_id = request.match_info['guild_id']
+        
+        try:
+            body = await request.json()
+            file_path = f'./data/{guild_id}/tickets.json'
+            
+            # 讀取現有數據
+            if os.path.exists(file_path):
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            else:
+                data = {
+                    'enabled': False,
+                    'category_id': None,
+                    'support_role_id': None,
+                    'log_channel_id': None,
+                    'tickets': {},
+                    'ticket_count': 0
+                }
+            
+            # 更新設定
+            if 'enabled' in body:
+                data['enabled'] = body['enabled']
+            if 'category_id' in body:
+                data['category_id'] = body['category_id']
+            if 'support_role_id' in body:
+                data['support_role_id'] = body['support_role_id']
+            if 'log_channel_id' in body:
+                data['log_channel_id'] = body['log_channel_id']
+            if 'panel_channel_id' in body:
+                data['panel_channel_id'] = body['panel_channel_id']
+            
+            # 保存數據
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=4)
+            
+            return web.json_response({'success': True, 'message': '設定已更新'})
+            
+        except Exception as e:
+            return web.json_response({'error': str(e)}, status=500)
+    
+    async def api_close_ticket(self, request):
+        """API：關閉客服單"""
+        session = await get_session(request)
+        
+        if not session.get('user'):
+            return web.json_response({'error': 'Unauthorized'}, status=401)
+        
+        guild_id = request.match_info['guild_id']
+        ticket_id = request.match_info['ticket_id']
+        
+        try:
+            body = await request.json()
+            reason = body.get('reason', '網頁關閉')
+            
+            file_path = f'./data/{guild_id}/tickets.json'
+            if not os.path.exists(file_path):
+                return web.json_response({'success': False, 'message': '找不到客服單'})
+            
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            if ticket_id not in data['tickets']:
+                return web.json_response({'success': False, 'message': '客服單不存在'})
+            
+            ticket = data['tickets'][ticket_id]
+            
+            # 更新狀態
+            from datetime import datetime
+            ticket['status'] = 'closed'
+            ticket['closed_at'] = datetime.now().isoformat()
+            ticket['closed_by'] = 'web_admin'
+            ticket['close_reason'] = reason
+            
+            # 保存數據
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=4)
+            
+            # 嘗試刪除Discord頻道
+            guild = self.bot.get_guild(int(guild_id))
+            if guild and ticket['channel_id']:
+                channel = guild.get_channel(int(ticket['channel_id']))
+                if channel:
+                    await channel.delete(reason=f"客服單關閉：{reason}")
+            
+            return web.json_response({'success': True, 'message': '客服單已關閉'})
+            
+        except Exception as e:
+            return web.json_response({'error': str(e)}, status=500)
+    
+    async def api_my_tickets(self, request):
+        """API：獲取當前用戶的所有客服單"""
+        session = await get_session(request)
+        user = session.get('user')
+        
+        if not user:
+            return web.json_response({'error': 'Unauthorized'}, status=401)
+        
+        user_id = user['id']
+        
+        try:
+            all_tickets = []
+            server_map = {}
+            
+            # 遍歷所有伺服器，找出用戶的客服單
+            for guild in self.bot.guilds:
+                guild_id = str(guild.id)
+                file_path = f'./data/{guild_id}/tickets.json'
+                
+                if not os.path.exists(file_path):
+                    continue
+                
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    
+                    # 找出屬於該用戶的客服單
+                    for ticket_id, ticket in data.get('tickets', {}).items():
+                        if str(ticket.get('user_id')) == str(user_id):
+                            ticket_info = {
+                                'ticket_id': ticket_id,
+                                'guild_id': guild_id,
+                                'channel_name': ticket.get('channel_name', '未知'),
+                                'channel_id': ticket.get('channel_id'),
+                                'status': ticket.get('status', 'unknown'),
+                                'created_at': ticket.get('created_at', ''),
+                                'closed_at': ticket.get('closed_at'),
+                                'closed_reason': ticket.get('close_reason')
+                            }
+                            all_tickets.append(ticket_info)
+                            server_map[guild_id] = guild.name
+                
+                except Exception as e:
+                    print(f"讀取伺服器 {guild.name} 的客服單時發生錯誤: {e}")
+                    continue
+            
+            return web.json_response({
+                'tickets': all_tickets,
+                'servers': server_map
+            })
+            
+        except Exception as e:
+            return web.json_response({'error': str(e)}, status=500)
+    
+    async def api_get_ticket_transcript(self, request):
+        """API：獲取客服單聊天記錄HTML"""
+        session = await get_session(request)
+        user = session.get('user')
+        
+        if not user:
+            return web.json_response({'error': 'Unauthorized'}, status=401)
+        
+        guild_id = request.match_info['guild_id']
+        ticket_id = request.match_info['ticket_id']
+        
+        try:
+            # 獲取客服單數據
+            file_path = f'./data/{guild_id}/tickets.json'
+            if not os.path.exists(file_path):
+                return web.json_response({'error': '找不到客服單'}, status=404)
+            
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            if ticket_id not in data['tickets']:
+                return web.json_response({'error': '客服單不存在'}, status=404)
+            
+            ticket = data['tickets'][ticket_id]
+            
+            # 檢查權限：只有客服單創建者或管理員可以查看
+            user_id = user['id']
+            is_ticket_owner = str(ticket.get('user_id')) == str(user_id)
+            
+            # 檢查是否為管理員（從 access_token 獲取用戶的公團權限）
+            is_admin = False
+            access_token = session.get('access_token')
+            if access_token:
+                async with ClientSession() as client_session:
+                    headers = {'Authorization': f"Bearer {access_token}"}
+                    async with client_session.get('https://discord.com/api/users/@me/guilds', headers=headers) as resp:
+                        if resp.status == 200:
+                            user_guilds = await resp.json()
+                            for guild in user_guilds:
+                                if str(guild['id']) == str(guild_id):
+                                    permissions = int(guild.get('permissions', 0))
+                                    is_admin = (permissions & 0x8) == 0x8
+                                    break
+            
+            if not (is_ticket_owner or is_admin):
+                return web.json_response({'error': '無權查看此客服單'}, status=403)
+            
+            # 獲取HTML文件
+            channel_name = ticket.get('channel_name', f"客服單-{ticket_id}")
+            transcript_path = f'./data/{guild_id}/ticket/{channel_name}-{ticket_id}.html'
+            
+            if not os.path.exists(transcript_path):
+                return web.json_response({'error': '找不到聊天記錄'}, status=404)
+            
+            with open(transcript_path, 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            
+            return web.Response(text=html_content, content_type='text/html')
+            
+        except Exception as e:
+            return web.json_response({'error': str(e)}, status=500)
+    
+    async def api_create_ticket_panel(self, request):
+        """API：創建客服單面板"""
+        session = await get_session(request)
+        
+        if not session.get('user'):
+            return web.json_response({'error': 'Unauthorized'}, status=401)
+        
+        guild_id = request.match_info['guild_id']
+        
+        try:
+            body = await request.json()
+            channel_id = body.get('channel_id')
+            
+            if not channel_id:
+                return web.json_response({'error': '缺少頻道ID'}, status=400)
+            
+            guild = self.bot.get_guild(int(guild_id))
+            if not guild:
+                return web.json_response({'error': '找不到伺服器'}, status=404)
+            
+            channel = guild.get_channel(int(channel_id))
+            if not channel:
+                return web.json_response({'error': '找不到頻道'}, status=404)
+            
+            # 獲取tickets cog
+            tickets_cog = self.bot.get_cog('Tickets')
+            if not tickets_cog:
+                return web.json_response({'error': '客服單系統未啟動'}, status=500)
+            
+            # 創建嵌入消息
+            embed = discord.Embed(
+                title="🎫 客服單系統",
+                description="需要幫助嗎？點擊下方按鈕創建客服單\n\n"
+                           "📋 創建客服單後，我們的支持團隊會盡快回覆您\n"
+                           "⏱️ 請耐心等待，我們會盡快處理您的問題",
+                color=discord.Color.blue()
+            )
+            embed.set_footer(text=f"{guild.name} 客服支持")
+            
+            # 導入TicketPanelView
+            from cogs.tickets import TicketPanelView
+            view = TicketPanelView(tickets_cog)
+            
+            # 發送面板
+            message = await channel.send(embed=embed, view=view)
+            
+            # 保存面板訊息ID
+            file_path = f'./data/{guild_id}/tickets.json'
+            if os.path.exists(file_path):
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            else:
+                data = {
+                    'enabled': False,
+                    'category_id': None,
+                    'support_role_id': None,
+                    'log_channel_id': None,
+                    'panel_channel_id': None,
+                    'panel_message_id': None,
+                    'tickets': {},
+                    'ticket_count': 0
+                }
+            
+            data['panel_channel_id'] = str(channel_id)
+            data['panel_message_id'] = str(message.id)
+            
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=4)
+            
+            return web.json_response({
+                'success': True,
+                'message': '已創建客服單面板',
+                'channel_id': str(channel_id),
+                'message_id': str(message.id)
+            })
+            
         except Exception as e:
             return web.json_response({'error': str(e)}, status=500)
     

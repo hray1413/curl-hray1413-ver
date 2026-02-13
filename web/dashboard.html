@@ -430,6 +430,7 @@
             <span style="margin-left: 1rem; color: #888; font-size: 0.9rem;">/ {GUILD_NAME}</span>
         </div>
         <div class="navbar-user">
+            <a href="/my-tickets" style="color: #2563eb; text-decoration: none; margin-right: 1rem;">🎫 我的客服單</a>
             <a href="/select-server" style="color: #2563eb; text-decoration: none; margin-right: 1rem;">← 返回伺服器列表</a>
             <img src="{AVATAR_URL}" alt="Avatar" class="user-avatar">
             <span class="user-name">{USERNAME}</span>
@@ -467,6 +468,9 @@
             </div>
             <div class="sidebar-item" onclick="showSection('achievements')">
                 成就管理
+            </div>
+            <div class="sidebar-item" onclick="showSection('tickets')">
+                客服單管理
             </div>
             <div class="sidebar-item" onclick="showSection('custom-commands')">
                 自定義命令
@@ -580,6 +584,14 @@
                 <div class="section">
                     <h2 class="section-title">臨時語音頻道設定</h2>
                     <div id="temp-voice-data" style="color: #888;">載入中...</div>
+                </div>
+            </div>
+
+            <!-- 客服單管理 -->
+            <div id="section-tickets" class="content-section" style="display: none;">
+                <div class="section">
+                    <h2 class="section-title">🎫 客服單系統管理</h2>
+                    <div id="tickets-data" style="color: #888;">載入中...</div>
                 </div>
             </div>
         </div>
@@ -1396,9 +1408,9 @@
                                 <label style="color: #666; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">觸發頻道</label>
                                 <select id="trigger-channel" onchange="updateTempVoiceConfig()" style="width: 100%; padding: 0.5rem; background: #2b2b2b; border: 1px solid #333; color: #ccc;">
                                     <option value="">選擇語音頻道...</option>
-                                    ${channelsData.voice_channels.map(ch => `
-                                        <option value="${ch.id}" ${config.trigger_channel_id == ch.id ? 'selected' : ''}>${ch.name}</option>
-                                    `).join('')}
+                                    ${channelsData.voice_channels.map(ch => 
+                                        '<option value="' + ch.id + '" ' + (config.trigger_channel_id == ch.id ? 'selected' : '') + '>' + ch.name + '</option>'
+                                    ).join('')}
                                 </select>
                             </div>
                             
@@ -1406,9 +1418,9 @@
                                 <label style="color: #666; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">頻道分類（可選）</label>
                                 <select id="category" onchange="updateTempVoiceConfig()" style="width: 100%; padding: 0.5rem; background: #2b2b2b; border: 1px solid #333; color: #ccc;">
                                     <option value="">無分類</option>
-                                    ${channelsData.categories.map(cat => `
-                                        <option value="${cat.id}" ${config.category_id == cat.id ? 'selected' : ''}>${cat.name}</option>
-                                    `).join('')}
+                                    ${channelsData.categories.map(cat => 
+                                        '<option value="' + cat.id + '" ' + (config.category_id == cat.id ? 'selected' : '') + '>' + cat.name + '</option>'
+                                    ).join('')}
                                 </select>
                             </div>
                             
@@ -1487,6 +1499,321 @@
                 }
             } catch (error) {
                 showNotification('更新失敗', 'error');
+            }
+        }
+
+        // ===== 客服單系統管理 =====
+        async function loadTickets() {
+            try {
+                const [ticketsRes, channelsRes, rolesRes] = await Promise.all([
+                    fetch('/api/tickets/' + GUILD_ID),
+                    fetch('/api/channels/' + GUILD_ID),
+                    fetch('/api/stats/' + GUILD_ID)
+                ]);
+                
+                const ticketsData = await ticketsRes.json();
+                const channelsData = await channelsRes.json();
+                const statsData = await rolesRes.json();
+                
+                const container = document.getElementById('tickets-data');
+                const config = ticketsData.exists ? ticketsData.data : {
+                    enabled: false,
+                    category_id: null,
+                    support_role_id: null,
+                    log_channel_id: null,
+                    tickets: {},
+                    ticket_count: 0
+                };
+                
+                // 統計開啟和關閉的客服單數量
+                const openTickets = Object.values(config.tickets).filter(t => t.status === 'open');
+                const closedTickets = Object.values(config.tickets).filter(t => t.status === 'closed');
+                
+                let html = `
+                    <!-- 系統狀態 -->
+                    <div style="background: #1a1a1a; padding: 1.25rem; border-left: 3px solid ${config.enabled ? '#2563eb' : '#666'}; margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <div style="color: #ccc; font-weight: 600;">系統狀態</div>
+                            <label style="position: relative; display: inline-block; width: 44px; height: 22px;">
+                                <input type="checkbox" ${config.enabled ? 'checked' : ''} onchange="toggleTickets(this.checked)" style="opacity: 0; width: 0; height: 0;">
+                                <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: ${config.enabled ? '#333' : '#2b2b2b'}; transition: 0.3s; border: 1px solid ${config.enabled ? '#2563eb' : '#444'};">
+                                    <span style="position: absolute; content: ''; height: 14px; width: 14px; left: 3px; bottom: 3px; background: ${config.enabled ? '#2563eb' : '#666'}; transition: 0.3s; transform: translateX(${config.enabled ? '22px' : '0'});"></span>
+                                </span>
+                            </label>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem;">
+                            <div style="background: #2b2b2b; padding: 1rem; text-align: center;">
+                                <div style="color: #2563eb; font-size: 1.75rem; font-weight: 600;">${openTickets.length}</div>
+                                <div style="color: #888; font-size: 0.85rem;">開啟中</div>
+                            </div>
+                            <div style="background: #2b2b2b; padding: 1rem; text-align: center;">
+                                <div style="color: #10b981; font-size: 1.75rem; font-weight: 600;">${closedTickets.length}</div>
+                                <div style="color: #888; font-size: 0.85rem;">已關閉</div>
+                            </div>
+                            <div style="background: #2b2b2b; padding: 1rem; text-align: center;">
+                                <div style="color: #f59e0b; font-size: 1.75rem; font-weight: 600;">${config.ticket_count}</div>
+                                <div style="color: #888; font-size: 0.85rem;">總計</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 系統設定 -->
+                    <div style="background: #1a1a1a; padding: 1.25rem; border-left: 3px solid #2563eb; margin-bottom: 1.5rem;">
+                        <div style="color: #fff; font-weight: 600; margin-bottom: 1rem;">系統設定</div>
+                        
+                        <div style="display: grid; gap: 1rem;">
+                            <div>
+                                <label style="color: #666; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">客服單分類</label>
+                                <select id="ticket-category" onchange="updateTicketSettings()" style="width: 100%; padding: 0.5rem; background: #2b2b2b; border: 1px solid #333; color: #ccc;">
+                                    <option value="">請選擇分類...</option>
+                                    ${(channelsData.categories || []).map(cat => 
+                                        '<option value="' + cat.id + '" ' + (config.category_id == cat.id ? 'selected' : '') + '>' + cat.name + '</option>'
+                                    ).join('')}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label style="color: #666; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">支持團隊角色</label>
+                                <select id="ticket-support-role" onchange="updateTicketSettings()" style="width: 100%; padding: 0.5rem; background: #2b2b2b; border: 1px solid #333; color: #ccc;">
+                                    <option value="">無</option>
+                                    ${Object.values(statsData.roles || {}).map(role => 
+                                        '<option value="' + role.id + '" ' + (config.support_role_id == role.id ? 'selected' : '') + '>' + role.name + '</option>'
+                                    ).join('')}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label style="color: #666; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">日誌頻道</label>
+                                <select id="ticket-log-channel" onchange="updateTicketSettings()" style="width: 100%; padding: 0.5rem; background: #2b2b2b; border: 1px solid #333; color: #ccc;">
+                                    <option value="">無</option>
+                                    ${(channelsData.text_channels || []).map(ch => 
+                                        '<option value="' + ch.id + '" ' + (config.log_channel_id == ch.id ? 'selected' : '') + '>' + ch.name + '</option>'
+                                    ).join('')}
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label style="color: #666; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">面板頻道（選擇後可創建面板）</label>
+                                <select id="ticket-panel-channel" onchange="updateTicketSettings()" style="width: 100%; padding: 0.5rem; background: #2b2b2b; border: 1px solid #333; color: #ccc;">
+                                    <option value="">無</option>
+                                    ${(channelsData.text_channels || []).map(ch => 
+                                        '<option value="' + ch.id + '" ' + (config.panel_channel_id == ch.id ? 'selected' : '') + '>' + ch.name + '</option>'
+                                    ).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 1rem;">
+                            <button onclick="createTicketPanel()" ${!config.panel_channel_id ? 'disabled' : ''} style="width: 100%; padding: 0.75rem; background: ${config.panel_channel_id ? '#2563eb' : '#444'}; border: none; color: ${config.panel_channel_id ? 'white' : '#666'}; cursor: ${config.panel_channel_id ? 'pointer' : 'not-allowed'}; font-weight: 600; transition: all 0.2s;">
+                                🎫 創建客服單面板
+                            </button>
+                            ${!config.panel_channel_id ? '<div style="color: #888; font-size: 0.85rem; text-align: center; margin-top: 0.5rem;">請先選擇面板頻道</div>' : ''}
+                        </div>
+                        
+                        <div style="margin-top: 1rem; padding: 1rem; background: #2b2b2b; border-left: 3px solid #2563eb;">
+                            <div style="color: #888; font-size: 0.9rem;">使用說明：</div>
+                            <div style="color: #666; font-size: 0.85rem; margin-top: 0.5rem;">
+                                1. 選擇客服單頻道分類<br>
+                                2. 選擇支持團隊角色（可選）<br>
+                                3. 設定日誌頻道記錄客服單操作<br>
+                                4. 選擇面板頻道後點擊創建面板按鈕
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 開啟中的客服單 -->
+                    <div style="background: #1a1a1a; padding: 1.25rem; border-left: 3px solid #10b981; margin-bottom: 1.5rem;">
+                        <div style="color: #fff; font-weight: 600; margin-bottom: 1rem;">開啟中的客服單 (${openTickets.length})</div>
+                        
+                        ${openTickets.length > 0 ? `
+                            <div style="display: grid; gap: 0.75rem;">
+                                ${openTickets.map((ticket, idx) => {
+                                    const ticketId = Object.keys(config.tickets).find(k => config.tickets[k] === ticket);
+                                    const userName = ticket.user_name || '未知';
+                                    const createdTime = new Date(ticket.created_at).toLocaleString('zh-TW');
+                                    return `
+                                        <div style="background: #2b2b2b; padding: 1rem; border-left: 3px solid #2563eb;">
+                                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                                <div>
+                                                    <div style="color: #fff; font-weight: 600;">客服單 #` + ticketId + `</div>
+                                                    <div style="color: #888; font-size: 0.85rem; margin-top: 0.25rem;">
+                                                        創建者: ` + userName + `
+                                                    </div>
+                                                </div>
+                                                <button onclick="closeTicket('` + ticketId + `')" style="padding: 0.5rem 1rem; background: #dc2626; border: none; color: white; cursor: pointer; font-size: 0.85rem; border-radius: 4px; font-weight: 600; transition: background 0.2s;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
+                                                    🔒 關閉客服單
+                                                </button>
+                                            </div>
+                                            <div style="color: #666; font-size: 0.85rem;">
+                                                創建時間: ` + createdTime + `
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        ` : '<div style="color: #666; text-align: center; padding: 2rem;">目前沒有開啟的客服單</div>'}
+                    </div>
+
+                    <!-- 最近關閉的客服單 -->
+                    <div style="background: #1a1a1a; padding: 1.25rem; border-left: 3px solid #6b7280;">
+                        <div style="color: #fff; font-weight: 600; margin-bottom: 1rem;">最近關閉的客服單</div>
+                        
+                        ${closedTickets.length > 0 ? `
+                            <div style="display: grid; gap: 0.75rem;">
+                                ${closedTickets.slice(-10).reverse().map((ticket, idx) => {
+                                    const ticketId = Object.keys(config.tickets).find(k => config.tickets[k] === ticket);
+                                    const userName = ticket.user_name || '未知';
+                                    const closerName = ticket.closer_name || ticket.closed_by || '未知';
+                                    const closedTime = new Date(ticket.closed_at).toLocaleString('zh-TW');
+                                    const closeReason = ticket.close_reason || '';
+                                    return `
+                                        <div style="background: #2b2b2b; padding: 1rem; border-left: 3px solid #6b7280;">
+                                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                                <div>
+                                                    <div style="color: #fff; font-weight: 600;">客服單 #` + ticketId + `</div>
+                                                    <div style="color: #888; font-size: 0.85rem; margin-top: 0.25rem;">
+                                                        創建者: ` + userName + `
+                                                    </div>
+                                                    <div style="color: #666; font-size: 0.85rem; margin-top: 0.25rem;">
+                                                        關閉者: ` + closerName + `
+                                                    </div>
+                                                    ` + (closeReason ? `
+                                                        <div style="color: #666; font-size: 0.85rem; margin-top: 0.25rem;">
+                                                            原因: ` + closeReason + `
+                                                        </div>
+                                                    ` : '') + `
+                                                </div>
+                                            </div>
+                                            <div style="color: #666; font-size: 0.85rem; margin-top: 0.5rem;">
+                                                關閉時間: ` + closedTime + `
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        ` : '<div style="color: #666; text-align: center; padding: 2rem;">沒有關閉記錄</div>'}
+                    </div>
+                `;
+                
+                container.innerHTML = html;
+            } catch (error) {
+                document.getElementById('tickets-data').innerHTML = '<p style="color: #dc2626;">載入失敗</p>';
+                console.error('載入客服單失敗:', error);
+            }
+        }
+
+        // 切換客服單系統
+        async function toggleTickets(enabled) {
+            try {
+                const res = await fetch('/api/tickets/' + GUILD_ID + '/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showNotification(enabled ? '客服單系統已啟用' : '客服單系統已停用', 'success');
+                    loadTickets();
+                } else {
+                    showNotification(data.error || '更新失敗', 'error');
+                    loadTickets();
+                }
+            } catch (error) {
+                showNotification('更新失敗', 'error');
+                loadTickets();
+            }
+        }
+
+        // 更新客服單設定
+        async function updateTicketSettings() {
+            const category = document.getElementById('ticket-category').value || null;
+            const supportRole = document.getElementById('ticket-support-role').value || null;
+            const logChannel = document.getElementById('ticket-log-channel').value || null;
+            const panelChannel = document.getElementById('ticket-panel-channel').value || null;
+            
+            try {
+                const res = await fetch('/api/tickets/' + GUILD_ID + '/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        category_id: category,
+                        support_role_id: supportRole,
+                        log_channel_id: logChannel,
+                        panel_channel_id: panelChannel
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showNotification('設定已更新！', 'success');
+                    loadTickets(); // 重新載入以更新創建面板按鈕狀態
+                } else {
+                    showNotification(data.error || '更新失敗', 'error');
+                }
+            } catch (error) {
+                showNotification('更新失敗', 'error');
+            }
+        }
+
+        // 創建客服單面板
+        async function createTicketPanel() {
+            const panelChannel = document.getElementById('ticket-panel-channel').value;
+            
+            if (!panelChannel) {
+                showNotification('請先選擇面板頻道', 'error');
+                return;
+            }
+            
+            if (!confirm('確定要在選定的頻道創建客服單面板嗎？')) return;
+            
+            try {
+                const res = await fetch(`/api/tickets/${GUILD_ID}/create-panel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ channel_id: panelChannel })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showNotification('✅ 客服單面板已創建！', 'success');
+                    loadTickets();
+                } else {
+                    showNotification(data.error || '創建失敗', 'error');
+                }
+            } catch (error) {
+                showNotification('創建失敗', 'error');
+                console.error('創建面板失敗:', error);
+            }
+        }
+
+        // 關閉客服單
+        async function closeTicket(ticketId) {
+            if (!confirm('確定要關閉此客服單嗎？')) return;
+            
+            const reason = prompt('請輸入關閉原因（可選）：') || '管理員關閉';
+            
+            try {
+                const res = await fetch(`/api/tickets/${GUILD_ID}/${ticketId}/close`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showNotification('客服單已關閉！', 'success');
+                    loadTickets();
+                } else {
+                    showNotification(data.message || '關閉失敗', 'error');
+                }
+            } catch (error) {
+                showNotification('關閉失敗', 'error');
             }
         }
 
@@ -1711,6 +2038,7 @@
         loadTempVoice();
         loadWarnings();
         loadAchievements();
+        loadTickets();
         
         // 每30秒更新一次數據
         setInterval(() => {
@@ -1725,11 +2053,7 @@
             loadTempVoice();
             loadWarnings();
             loadAchievements();
-            loadBirthdays();
-            loadGames();
-            loadStatistics();
-            loadCustomCommands();
-            loadTempVoice();
+            loadTickets();
         }, 30000);
     </script>
 </body>
