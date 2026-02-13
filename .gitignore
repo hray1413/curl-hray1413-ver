@@ -3,6 +3,7 @@
 
 # 数据文件
 data/
+website/
 
 # Python
 __pycache__/
