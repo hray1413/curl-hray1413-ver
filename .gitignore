@@ -42,3 +42,6 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+
+# 脚本工具
+git_upload.bat
