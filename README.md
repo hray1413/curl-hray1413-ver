@@ -302,6 +302,8 @@ async def setup(bot):
 ├── .env.example            # 環境變數示例
 ├── requirements.txt        # Python 依賴
 ├── README.md               # 說明文檔
+├── OAUTH_SETUP.md          # OAuth2 設定教學
+├── LICENSE                 # 授權文件
 ├── .gitignore              # Git 忽略檔案
 ├── data/                   # 數據目錄（自動生成）
 │   └── [guild_id]/         # 各伺服器數據
@@ -315,18 +317,24 @@ async def setup(bot):
 │       ├── achievements.json     # 成就數據
 │       ├── reaction_roles.json   # 反應角色
 │       ├── profiles.json         # 個人資料
-│       └── statistics.json       # 統計數據
+│       ├── statistics.json       # 統計數據
+│       ├── tickets.json          # 客服單數據
+│       └── ticket/               # 客服單聊天記錄（HTML）
 ├── web/                    # 網頁控制台
-│   ├── server.py           # Web 伺服器
+│   ├── server.py           # Web 伺服器（OAuth2 + API）
 │   ├── index.html          # 登入頁面
 │   ├── select_server.html  # 伺服器選擇
-│   └── dashboard.html      # 控制台主頁
-└── cogs/                   # Cogs 資料夾
-    ├── general.py          # 一般指令
-    ├── moderation.py       # 管理指令（含警告系統）
-    ├── fun.py              # 娛樂指令
+│   ├── dashboard.html      # 控制台主頁
+│   ├── my-tickets.html     # 我的客服單頁面
+│   └── static/             # 靜態資源（CSS、JS、圖片）
+├── website/                # 官網（排除於 Git 之外）
+└── cogs/                   # Cogs 資料夾（功能模組）
+    ├── general.py          # 一般指令（ping、userinfo、help）
+    ├── moderation.py       # 管理指令（kick、ban、warn、清除訊息）
+    ├── fun.py              # 娛樂指令（骰子、硬幣、魔法8球）
+    ├── games.py            # 遊戲系統（21點、猜拳、猜數字）
     ├── serverinfo.py       # 伺服器資訊統計
-    ├── utilities.py        # 實用工具集合
+    ├── utilities.py        # 實用工具集合（頭像、計算器、提醒）
     ├── leveling.py         # 等級系統
     ├── daily.py            # 簽到系統
     ├── birthday.py         # 生日系統
@@ -334,9 +342,13 @@ async def setup(bot):
     ├── temp_voice.py       # 臨時語音頻道
     ├── custom_commands.py  # 自定義命令
     ├── profile.py          # 個人資料卡片
-    ├── achievements.py     # 成就系統
+    ├── achievements.py     # 成就系統（150+ 成就）
     ├── reaction_roles.py   # 反應角色
-    ├── statistics.py       # 統計分析
+    ├── statistics.py       # 統計分析（活躍度、熱門頻道）
+    ├── tickets.py          # 客服單系統（HTML 聊天記錄）
+    ├── polls.py            # 投票/問卷系統（按鈕式 UI）
+    ├── updater.py          # 自動更新系統
+    ├── developer.py        # 開發者專用指令
     └── logging_system.py   # 日誌系統
 ```
 
