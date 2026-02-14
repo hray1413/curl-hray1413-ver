@@ -203,6 +203,67 @@ class Developer(commands.Cog):
         
         await interaction.response.send_message(embed=embed, ephemeral=True)
     
+    @dev_group.command(name="update", description="檢查並安裝更新")
+    async def check_update(self, interaction: discord.Interaction):
+        """检查更新（仅开发者）"""
+        if not self.is_developer(interaction.user.id):
+            await interaction.response.send_message(
+                "❌ 此命令僅限開發者使用！", 
+                ephemeral=True
+            )
+            return
+        
+        await interaction.response.defer(ephemeral=True)
+        
+        # 获取 Updater cog
+        updater = self.bot.get_cog('Updater')
+        if not updater:
+            embed = discord.Embed(
+                title="❌ 錯誤",
+                description="無法找到更新模組",
+                color=discord.Color.red()
+            )
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            return
+        
+        # 检查版本
+        local_version = updater.get_local_version()
+        remote_version = await updater.get_remote_version()
+        
+        if not local_version or not remote_version:
+            embed = discord.Embed(
+                title="❌ 無法檢查更新",
+                description="無法讀取版本信息",
+                color=discord.Color.red()
+            )
+            embed.add_field(name="本地版本", value=local_version or "讀取失敗", inline=True)
+            embed.add_field(name="遠程版本", value=remote_version or "讀取失敗", inline=True)
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            return
+        
+        # 比较版本
+        if local_version == remote_version:
+            embed = discord.Embed(
+                title="✅ 已是最新版本",
+                description=f"當前版本：`{local_version}`",
+                color=discord.Color.green()
+            )
+            embed.set_footer(text=f"執行者: {interaction.user.name}")
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            return
+        
+        # 发现新版本
+        embed = discord.Embed(
+            title="🎉 發現新版本",
+            description=f"正在從 **{local_version}** 更新至 **{remote_version}**",
+            color=discord.Color.orange()
+        )
+        await interaction.followup.send(embed=embed, ephemeral=True)
+        
+        # 执行更新
+        print(f'\n🔄 開發者 {interaction.user.name} ({interaction.user.id}) 觸發手動更新')
+        await updater.check_and_update()
+    
     @commands.Cog.listener()
     async def on_ready(self):
         """機器人準備就緒"""
