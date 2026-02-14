@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 import os
 import sys
@@ -9,217 +10,206 @@ class Developer(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot
+        # 从 .env 读取开发者 ID 列表
         load_dotenv()
-        # 讀取開發者 ID（支持多個，用逗號分隔）
         dev_ids = os.getenv('DEV_ID', '')
-        if dev_ids:
-            self.dev_ids = [int(id.strip()) for id in dev_ids.split(',') if id.strip().isdigit()]
-        else:
-            self.dev_ids = []
+        self.dev_ids = [int(id.strip()) for id in dev_ids.split(',') if id.strip()]
     
     def is_developer(self, user_id: int) -> bool:
-        """檢查用戶是否為開發者"""
+        """检查用户是否为开发者"""
         return user_id in self.dev_ids
     
-    async def show_help(self, message):
-        """顯示開發者指令幫助"""
-        await message.channel.send(
-            "🔧 **開發者指令**\n"
-            "```\n"
-            "?開發 restart  - 重啟機器人\n"
-            "?開發 status   - 查看系統狀態\n"
-            "?開發 reload   - 重新載入所有 Cogs\n"
-            "?開發 eval     - 執行 Python 代碼\n"
-            "```"
-        )
+    # 创建开发者指令组
+    dev_group = app_commands.Group(name="開發", description="開發者專用指令")
     
-    async def handle_restart(self, message):
-        """重啟機器人"""
+    @dev_group.command(name="restart", description="重新啟動機器人")
+    async def restart(self, interaction: discord.Interaction):
+        """重启机器人（仅开发者）"""
+        # 检查权限
+        if not self.is_developer(interaction.user.id):
+            await interaction.response.send_message(
+                "❌ 此命令僅限開發者使用！", 
+                ephemeral=True
+            )
+            return
+        
         embed = discord.Embed(
-            title="🔄 重啟機器人",
-            description="機器人正在重啟，請稍候...",
+            title="🔄 重新啟動機器人",
+            description="機器人正在重新啟動...\n請稍候片刻",
             color=discord.Color.orange()
         )
-        embed.set_footer(text=f"執行者: {message.author.name}")
+        embed.set_footer(text=f"執行者: {interaction.user.name}")
         
-        await message.channel.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
         
-        print(f"\n{'═' * 62}")
-        print(f"🔄 開發者 {message.author.name} ({message.author.id}) 執行重啟")
-        print(f"{'═' * 62}\n")
+        print('\n' + '═' * 62)
+        print(f'🔄 開發者 {interaction.user.name} ({interaction.user.id}) 觸發重啟')
+        print('═' * 62 + '\n')
         
-        # 關閉機器人
+        # 关闭机器人并重启
         await self.bot.close()
-        
-        # 重新啟動 (支援 Linux/Windows)
         os.execv(sys.executable, [sys.executable] + sys.argv)
     
-    async def handle_status(self, message):
-        """查看系統狀態"""
-        # 獲取版本
-        try:
-            with open('./version.txt', 'r', encoding='utf-8') as f:
-                content = f.read().strip()
-                version = content.split('=')[1].strip() if '=' in content else content
-        except:
-            version = "Unknown"
-        
-        # 計算 Cogs 數量
-        cog_count = len(self.bot.cogs)
-        
-        # 計算命令數量
-        command_count = len([cmd for cmd in self.bot.walk_commands()])
+    @dev_group.command(name="info", description="顯示開發者資訊")
+    async def dev_info(self, interaction: discord.Interaction):
+        """显示开发者信息"""
+        if not self.is_developer(interaction.user.id):
+            await interaction.response.send_message(
+                "❌ 此命令僅限開發者使用！", 
+                ephemeral=True
+            )
+            return
         
         embed = discord.Embed(
-            title="🔧 系統狀態",
+            title="👨‍💻 開發者資訊",
             color=discord.Color.blue()
         )
-        embed.add_field(name="版本", value=f"`{version}`", inline=True)
-        embed.add_field(name="延遲", value=f"`{round(self.bot.latency * 1000)}ms`", inline=True)
-        embed.add_field(name="伺服器數", value=f"`{len(self.bot.guilds)}`", inline=True)
-        embed.add_field(name="用戶數", value=f"`{sum(g.member_count for g in self.bot.guilds):,}`", inline=True)
-        embed.add_field(name="Cogs 數量", value=f"`{cog_count}`", inline=True)
-        embed.add_field(name="命令數量", value=f"`{command_count}`", inline=True)
         
-        # Python 版本
-        python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-        embed.add_field(name="Python 版本", value=f"`{python_version}`", inline=True)
-        embed.add_field(name="Discord.py", value=f"`{discord.__version__}`", inline=True)
-        
-        embed.set_footer(text=f"執行者: {message.author.name}")
-        
-        await message.channel.send(embed=embed)
-    
-    async def handle_reload(self, message):
-        """重新載入所有 Cogs"""
-        msg = await message.channel.send("🔄 正在重新載入所有 Cogs...")
-        
-        successful = []
-        failed = []
-        
-        # 獲取所有已載入的 Cogs
-        cog_names = list(self.bot.cogs.keys())
-        
-        for cog_name in cog_names:
+        # 显示授权的开发者
+        dev_list = []
+        for dev_id in self.dev_ids:
             try:
-                # 獲取 Cog 對應的模組名
-                cog = self.bot.cogs[cog_name]
-                module_name = cog.__module__
-                
-                # 重新載入
-                await self.bot.reload_extension(module_name)
-                successful.append(cog_name)
-            except Exception as e:
-                failed.append(f"{cog_name}: {str(e)}")
+                user = await self.bot.fetch_user(dev_id)
+                dev_list.append(f"• {user.name} (`{dev_id}`)")
+            except:
+                dev_list.append(f"• Unknown User (`{dev_id}`)")
         
-        # 更新結果
-        embed = discord.Embed(
-            title="🔄 Cogs 重新載入結果",
-            color=discord.Color.green() if not failed else discord.Color.orange()
+        embed.add_field(
+            name="授權開發者",
+            value="\n".join(dev_list) if dev_list else "無",
+            inline=False
         )
         
-        if successful:
-            embed.add_field(
-                name=f"✅ 成功 ({len(successful)})",
-                value="```\n" + "\n".join(successful) + "```",
-                inline=False
-            )
+        # 系统信息
+        embed.add_field(
+            name="Python 版本",
+            value=f"`{sys.version.split()[0]}`",
+            inline=True
+        )
         
-        if failed:
-            embed.add_field(
-                name=f"❌ 失敗 ({len(failed)})",
-                value="```\n" + "\n".join(failed[:5]) + "```",
-                inline=False
-            )
+        embed.add_field(
+            name="Discord.py 版本",
+            value=f"`{discord.__version__}`",
+            inline=True
+        )
         
-        embed.set_footer(text=f"執行者: {message.author.name}")
+        embed.add_field(
+            name="伺服器數量",
+            value=f"`{len(self.bot.guilds)}`",
+            inline=True
+        )
         
-        await msg.edit(content=None, embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
     
-    async def handle_eval(self, message, code: str):
-        """執行 Python 代碼（危險！）"""
-        # 移除代碼塊標記
-        if code.startswith('```') and code.endswith('```'):
-            code = code[3:-3]
-            if code.startswith('python'):
-                code = code[6:]
+    @dev_group.command(name="eval", description="執行 Python 代碼")
+    @app_commands.describe(代碼="要執行的 Python 代碼")
+    async def eval_code(self, interaction: discord.Interaction, 代碼: str):
+        """执行 Python 代码（仅开发者）"""
+        if not self.is_developer(interaction.user.id):
+            await interaction.response.send_message(
+                "❌ 此命令僅限開發者使用！", 
+                ephemeral=True
+            )
+            return
+        
+        await interaction.response.defer(ephemeral=True)
         
         try:
-            result = eval(code)
+            # 执行代码
+            result = eval(代碼)
             
             embed = discord.Embed(
                 title="✅ 執行成功",
                 color=discord.Color.green()
             )
-            embed.add_field(name="代碼", value=f"```python\n{code[:1000]}\n```", inline=False)
-            embed.add_field(name="結果", value=f"```python\n{str(result)[:1000]}\n```", inline=False)
+            embed.add_field(name="代碼", value=f"```python\n{代碼}\n```", inline=False)
+            embed.add_field(name="結果", value=f"```python\n{result}\n```", inline=False)
             
-            await message.channel.send(embed=embed)
         except Exception as e:
             embed = discord.Embed(
-                title="❌ 執行失敗",
+                title="❌ 執行錯誤",
                 color=discord.Color.red()
             )
-            embed.add_field(name="代碼", value=f"```python\n{code[:1000]}\n```", inline=False)
-            embed.add_field(name="錯誤", value=f"```python\n{str(e)[:1000]}\n```", inline=False)
-            
-            await message.channel.send(embed=embed)
+            embed.add_field(name="代碼", value=f"```python\n{代碼}\n```", inline=False)
+            embed.add_field(name="錯誤", value=f"```python\n{type(e).__name__}: {str(e)}\n```", inline=False)
+        
+        await interaction.followup.send(embed=embed, ephemeral=True)
     
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        """監聽消息並處理開發者指令"""
-        # 忽略機器人自己的消息
-        if message.author.bot:
+    @dev_group.command(name="sync", description="同步斜線命令")
+    async def sync_commands(self, interaction: discord.Interaction):
+        """同步斜线命令到 Discord（仅开发者）"""
+        if not self.is_developer(interaction.user.id):
+            await interaction.response.send_message(
+                "❌ 此命令僅限開發者使用！", 
+                ephemeral=True
+            )
             return
         
-        # 檢查是否為開發者指令（以 ?開發 開頭）
-        if not message.content.startswith('?開發'):
+        await interaction.response.defer(ephemeral=True)
+        
+        try:
+            synced = await self.bot.tree.sync()
+            
+            embed = discord.Embed(
+                title="✅ 命令同步成功",
+                description=f"已同步 **{len(synced)}** 個斜線命令",
+                color=discord.Color.green()
+            )
+            embed.set_footer(text=f"執行者: {interaction.user.name}")
+            
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            
+            print(f'✅ 開發者 {interaction.user.name} 同步了 {len(synced)} 個命令')
+            
+        except Exception as e:
+            embed = discord.Embed(
+                title="❌ 同步失敗",
+                description=f"```{str(e)}```",
+                color=discord.Color.red()
+            )
+            await interaction.followup.send(embed=embed, ephemeral=True)
+    
+    @dev_group.command(name="guilds", description="查看所有伺服器")
+    async def list_guilds(self, interaction: discord.Interaction):
+        """列出所有服务器（仅开发者）"""
+        if not self.is_developer(interaction.user.id):
+            await interaction.response.send_message(
+                "❌ 此命令僅限開發者使用！", 
+                ephemeral=True
+            )
             return
         
-        # 檢查權限
-        if not self.is_developer(message.author.id):
-            msg = await message.channel.send("❌ 此指令僅限開發者使用！")
-            await message.delete(delay=5)
-            await msg.delete(delay=5)
-            return
+        guilds = self.bot.guilds
         
-        # 解析指令
-        parts = message.content.split(maxsplit=2)
+        embed = discord.Embed(
+            title=f"📊 伺服器列表 ({len(guilds)})",
+            color=discord.Color.blue()
+        )
         
-        # 只有 ?開發
-        if len(parts) == 1:
-            await self.show_help(message)
-            return
+        # 按成员数排序
+        sorted_guilds = sorted(guilds, key=lambda g: g.member_count, reverse=True)
         
-        command = parts[1].lower()
+        guild_list = []
+        for i, guild in enumerate(sorted_guilds[:25], 1):  # 最多显示25个
+            guild_list.append(
+                f"{i}. **{guild.name}**\n"
+                f"   └ ID: `{guild.id}` | 成員: `{guild.member_count}`"
+            )
         
-        # 處理各種指令
-        if command in ['restart', '重啟']:
-            await self.handle_restart(message)
+        embed.description = "\n".join(guild_list)
         
-        elif command in ['status', '狀態']:
-            await self.handle_status(message)
+        if len(guilds) > 25:
+            embed.set_footer(text=f"僅顯示前 25 個伺服器，共 {len(guilds)} 個")
         
-        elif command in ['reload', '重載']:
-            await self.handle_reload(message)
-        
-        elif command == 'eval':
-            if len(parts) >= 3:
-                code = parts[2]
-                await self.handle_eval(message, code)
-            else:
-                await message.channel.send("❌ 請提供要執行的代碼！\n用法: `?開發 eval <代碼>`")
-        
-        else:
-            await message.channel.send(f"❌ 未知的指令: `{command}`\n使用 `?開發` 查看所有可用指令")
+        await interaction.response.send_message(embed=embed, ephemeral=True)
     
     @commands.Cog.listener()
     async def on_ready(self):
-        """Cog 準備就緒"""
+        """機器人準備就緒"""
         if self.dev_ids:
-            print(f'🔧 {self.__class__.__name__} cog已載入 | 開發者: {len(self.dev_ids)} 位')
+            print(f'👨‍💻 開發者模組已載入 ({len(self.dev_ids)} 位開發者)')
         else:
-            print(f'⚠️  {self.__class__.__name__} cog已載入 | 警告: 未設定開發者ID')
+            print('⚠️  開發者模組已載入，但未設定 DEV_ID')
 
 async def setup(bot):
     await bot.add_cog(Developer(bot))
