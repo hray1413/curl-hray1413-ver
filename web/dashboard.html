@@ -1834,7 +1834,7 @@
                     const warnColor = warnCount >= 5 ? '#dc2626' : warnCount >= 3 ? '#f59e0b' : '#eab308';
                     
                     html += `
-                        <div style="background: #1a1a1a; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; border-left: 4px solid ${warnColor};">
+                        <div style="background: #1a1a1a; padding: 1rem; margin-bottom: 1rem; border-left: 4px solid ${warnColor};">
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
                                 <div style="display: flex; align-items: center; gap: 1rem;">
                                     ${userData.avatar ? `<img src="${userData.avatar}" style="width: 40px; height: 40px; border-radius: 50%;">` : ''}
@@ -1857,12 +1857,19 @@
                     
                     // 顯示最近5條警告
                     const recentWarnings = userData.warnings.slice(-5).reverse();
-                    for (const warn of recentWarnings) {
+                    for (let i = 0; i < recentWarnings.length; i++) {
+                        const warn = recentWarnings[i];
+                        const actualIndex = userData.warnings.length - 1 - i;
                         const timestamp = new Date(warn.timestamp).toLocaleString('zh-TW');
                         html += `
-                            <div style="padding: 0.5rem; background: #2b2b2b; margin-bottom: 0.3rem; border-radius: 4px; font-size: 0.9rem;">
-                                <div style="color: #eab308;">理由: ${warn.reason}</div>
-                                <div style="color: #888; font-size: 0.85rem;">操作者: ${warn.moderator_name} | ${timestamp}</div>
+                            <div style="padding: 0.5rem; background: #2b2b2b; margin-bottom: 0.3rem; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;">
+                                <div style="flex: 1;">
+                                    <div style="color: #eab308;">理由: ${warn.reason}</div>
+                                    <div style="color: #888; font-size: 0.85rem;">操作者: ${warn.moderator_name} | ${timestamp}</div>
+                                </div>
+                                <button onclick="removeWarning('${userId}', ${actualIndex})" class="btn btn-sm" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; background: #dc2626; color: white; border: none; cursor: pointer;">
+                                    移除當前
+                                </button>
                             </div>
                         `;
                     }
@@ -1895,12 +1902,13 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    showNotification(data.message, 'success');
+                    showNotification(data.message || '已移除警告', 'success');
                     loadWarnings();
                 } else {
-                    showNotification(data.message || '操作失敗', 'error');
+                    showNotification(data.message || data.error || '操作失敗', 'error');
                 }
             } catch (error) {
+                console.error('移除警告失敗:', error);
                 showNotification('操作失敗', 'error');
             }
         }
@@ -1915,12 +1923,34 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    showNotification(data.message, 'success');
+                    showNotification(data.message || '已清除警告', 'success');
                     loadWarnings();
                 } else {
-                    showNotification(data.message || '操作失敗', 'error');
+                    showNotification(data.message || data.error || '操作失敗', 'error');
                 }
             } catch (error) {
+                console.error('清除警告失敗:', error);
+                showNotification('操作失敗', 'error');
+            }
+        }
+
+        async function removeWarning(userId, index) {
+            if (!confirm('確定要移除此警告嗎？')) return;
+            
+            try {
+                const res = await fetch(`/api/warnings/${GUILD_ID}/${userId}/${index}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showNotification(data.message || '已移除警告', 'success');
+                    loadWarnings();
+                } else {
+                    showNotification(data.message || data.error || '操作失敗', 'error');
+                }
+            } catch (error) {
+                console.error('移除警告失敗:', error);
                 showNotification('操作失敗', 'error');
             }
         }

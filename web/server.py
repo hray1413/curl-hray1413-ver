@@ -59,6 +59,7 @@ class WebServer:
         self.app.router.add_get('/api/warnings/{guild_id}', self.api_get_warnings)
         self.app.router.add_delete('/api/warnings/{guild_id}/{user_id}', self.api_clear_warnings)
         self.app.router.add_delete('/api/warnings/{guild_id}/{user_id}/latest', self.api_remove_latest_warning)
+        self.app.router.add_delete('/api/warnings/{guild_id}/{user_id}/{index}', self.api_remove_warning_by_index)
         
         # 成就系統 API
         self.app.router.add_get('/api/achievements/{guild_id}', self.api_get_achievements)
@@ -823,6 +824,45 @@ class WebServer:
                 })
             else:
                 return web.json_response({'success': False, 'message': '沒有警告記錄'})
+                
+        except Exception as e:
+            return web.json_response({'error': str(e)}, status=500)
+    
+    async def api_remove_warning_by_index(self, request):
+        """移除用戶指定索引的警告"""
+        session = await get_session(request)
+        
+        if not session.get('user'):
+            return web.json_response({'error': 'Unauthorized'}, status=401)
+        
+        guild_id = request.match_info['guild_id']
+        user_id = request.match_info['user_id']
+        index = int(request.match_info['index'])
+        
+        try:
+            file_path = f'./data/{guild_id}/warnings.json'
+            if not os.path.exists(file_path):
+                return web.json_response({'success': False, 'message': '沒有警告記錄'})
+            
+            with open(file_path, 'r', encoding='utf-8') as f:
+                warnings_data = json.load(f)
+            
+            if user_id in warnings_data and len(warnings_data[user_id]) > index >= 0:
+                removed = warnings_data[user_id].pop(index)
+                
+                if len(warnings_data[user_id]) == 0:
+                    del warnings_data[user_id]
+                
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    json.dump(warnings_data, f, ensure_ascii=False, indent=4)
+                
+                return web.json_response({
+                    'success': True, 
+                    'message': '已移除警告',
+                    'removed_warning': removed
+                })
+            else:
+                return web.json_response({'success': False, 'message': '警告不存在'})
                 
         except Exception as e:
             return web.json_response({'error': str(e)}, status=500)
